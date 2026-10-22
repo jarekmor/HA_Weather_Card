@@ -1,5 +1,9 @@
 # Weather Scene Card
 
+<p align="center">
+  <img src="docs/demo.webp" alt="Weather Scene Card: zegar i prognoza na tle animowanej burzy z deszczem" width="514">
+</p>
+
 Karta Lovelace dla Home Assistant: zegar i prognoza pogody na tle animowanej
 sceny WebGL. Scena odwzorowuje aktualne warunki: krople deszczu na szybie,
 śnieg, mgłę, burzę z błyskawicami, a także słońce, księżyc i gwiazdy zależnie
