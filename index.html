@@ -1,0 +1,81 @@
+<!doctype html>
+<!-- Local preview with a fake hass object: npm run dev -->
+<html lang="pl">
+  <head>
+    <meta charset="utf-8" />
+    <title>weather-scene-card preview</title>
+    <style>
+      body { margin: 0; padding: 24px; background: #111; font-family: Roboto, system-ui, sans-serif; color: #ddd; }
+      .row { display: flex; gap: 12px; margin-bottom: 16px; align-items: center; }
+      weather-scene-card { display: block; width: 480px; }
+      ha-card { display: block; background: #1c1c1c; border-radius: 12px; }
+    </style>
+  </head>
+  <body>
+    <div class="row">
+      <select id="cond"></select>
+      <label>sun elevation <input id="elev" type="range" min="-20" max="50" value="25" /></label>
+      <select id="quality"><option>high</option><option>medium</option><option>low</option></select>
+    </div>
+    <weather-scene-card id="card"></weather-scene-card>
+    <script type="module">
+      import './src/weather-scene-card.js';
+
+      const params = new URLSearchParams(location.search);
+      const conditions = ['sunny', 'clear-night', 'partlycloudy', 'cloudy', 'fog', 'rainy', 'pouring', 'lightning',
+        'lightning-rainy', 'snowy', 'snowy-rainy', 'hail', 'windy', 'windy-variant', 'exceptional'];
+      const cond = document.getElementById('cond');
+      const elev = document.getElementById('elev');
+      const quality = document.getElementById('quality');
+      cond.innerHTML = conditions.map((c) => `<option>${c}</option>`).join('');
+      cond.value = params.get('c') ?? 'rainy';
+      elev.value = params.get('e') ?? 25;
+      quality.value = params.get('q') ?? 'high';
+
+      const hour = 3600000;
+      const start = Math.floor(Date.now() / hour) * hour;
+      const hourly = Array.from({ length: 24 }, (_, i) => ({
+        datetime: new Date(start + i * hour).toISOString(),
+        condition: i < 4 ? cond.value : i < 8 ? 'cloudy' : 'partlycloudy',
+        temperature: 14.1 - i * 0.4,
+        precipitation: i < 4 ? 1.6 - i * 0.3 : 0,
+        cloud_coverage: 90,
+      }));
+      const daily = [{ datetime: new Date(start).toISOString(), temperature: 15.4, templow: 10.8, condition: 'rainy' }];
+
+      const connection = {
+        subscribeMessage: async (cb, msg) => {
+          setTimeout(() => cb({ forecast: msg.forecast_type === 'hourly' ? hourly : daily }), 50);
+          return () => {};
+        },
+      };
+
+      const card = document.getElementById('card');
+      function apply() {
+        const e = Number(elev.value);
+        card.setConfig({ entity: 'weather.forecast_home', name: 'Pogoda Dom', title: 'Pogoda', quality: quality.value });
+        card.hass = {
+          language: 'pl',
+          locale: { language: 'pl', time_format: 'language', time_zone: 'local' },
+          config: { time_zone: 'Europe/Warsaw' },
+          connection,
+          formatEntityState: (s) => s.state,
+          states: {
+            'weather.forecast_home': {
+              entity_id: 'weather.forecast_home',
+              state: cond.value,
+              attributes: { temperature: 15.4, temperature_unit: '°C', cloud_coverage: 90, wind_speed: 22,
+                wind_speed_unit: 'km/h', wind_bearing: 288, friendly_name: 'Forecast Home' },
+            },
+            'sun.sun': {
+              state: e > 0 ? 'above_horizon' : 'below_horizon',
+              attributes: { elevation: e, azimuth: 200, next_rising: '2026-10-23T05:15:57Z', next_setting: '2026-10-23T15:25:36Z' },
+            },
+          },
+        };
+      }
+      [cond, elev, quality].forEach((el) => el.addEventListener('input', apply));
+      apply();
+    </script>
+  </body>
+</html>

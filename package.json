@@ -1,0 +1,20 @@
+{
+  "name": "weather-scene-card",
+  "version": "0.1.1",
+  "description": "",
+  "scripts": {
+    "dev": "vite --host 127.0.0.1 --port 5179",
+    "build": "vite build"
+  },
+  "license": "ISC",
+  "type": "module",
+  "dependencies": {
+    "@bybas/weather-icons": "^2.0.0",
+    "lit": "^3.3.3",
+    "three": "^0.186.1"
+  },
+  "devDependencies": {
+    "vite": "^8.3.5"
+  },
+  "private": "true"
+}
